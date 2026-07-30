@@ -154,3 +154,21 @@ type EcsTaskResp struct {
 	TaskId string
 	*ecsTypes.Task
 }
+
+type ASGResp struct {
+	Name                      string
+	AutoScalingGroupName      string
+	ARN                       string
+	AvailabilityZones         string
+	MinSize                   string
+	MaxSize                   string
+	DesiredCapacity           string
+	DefaultCooldown           string
+	HealthCheckType           string
+	HealthCheckGracePeriod    string
+	CreatedTime               string
+	Status                    string
+	LaunchConfigurationName   string
+	LaunchTemplate            string
+	TerminationPolicies       string
+}

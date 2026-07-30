@@ -7,6 +7,10 @@ import (
 )
 
 var Registry = map[string]ResourceMeta{
+	internal.LowercaseAsg: {
+		DAO:      &dao.ASG{},
+		Renderer: &render.ASG{},
+	},
 	internal.LowercaseEc2: {
 		DAO:      &dao.EC2{},
 		Renderer: &render.EC2{},

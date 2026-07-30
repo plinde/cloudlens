@@ -131,6 +131,7 @@ func (a *Aliases) loadDefaultAliases(cloud string) {
 
 	switch cloud {
 	case internal.AWS:
+		a.declare(internal.LowercaseAsg, internal.UppercaseAsg)
 		a.declare(internal.LowercaseEc2, internal.UppercaseEc2)
 		a.declare(internal.LowercaseS3, internal.UppercaseS3)
 		a.declare(internal.LowercaseSg, internal.UppercaseSg)
