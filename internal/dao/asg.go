@@ -41,8 +41,8 @@ func (a *ASG) Describe(asgName string) (string, error) {
 	if !ok {
 		log.Err(fmt.Errorf("conversion err: Expected awsV2.Config but got %v", cfg))
 	}
-	res := aws.GetSingleASG(cfg, asgName)
-	return fmt.Sprintf("%v", res), nil
+	res := aws.GetASGFormatted(cfg, asgName)
+	return res, nil
 }
 
 func (a *ASG) UpdateSize(ctx context.Context, asgName string, minSize, maxSize, desiredCapacity int32) error {

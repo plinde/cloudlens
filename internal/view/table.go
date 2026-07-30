@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	DefaultRefreshRate = time.Second * 20
+	DefaultRefreshRate = time.Second * 30
 )
 
 // Table represents a table viewer.

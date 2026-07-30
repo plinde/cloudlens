@@ -29,14 +29,18 @@ upstream PR from happening. Merging a PR on this fork is fine when asked.
 If something genuinely looks worth upstreaming, **say so and stop** — the user
 decides whether anything is ever sent to `one2nc/cloudlens`.
 
-## Branch and worktree layout
+## All work must be done in linked worktrees
 
-Work in a linked worktree beside the main checkout, never in the main checkout:
+**No work happens in the main checkout.** All changes, commits, builds, and
+validation occur in a linked worktree.
 
 ```
 ~/workspace/github.com/plinde/cloudlens/                 ← main checkout, keep clean
 ~/workspace/github.com/plinde/cloudlens--<description>/  ← linked worktrees
 ```
+
+The main checkout is for `git fetch`, `git merge`/fast-forward, and creating
+worktrees — nothing else. Never edit files, run builds, or commit in it.
 
 Branch off `origin/main` after a fetch, and pull the main checkout forward
 (`git pull --ff-only`) once a PR merges.
@@ -47,13 +51,18 @@ Fork-local preferences must not be mixed into commits that would otherwise be
 clean upstream changes. Anything that is *only* a local preference gets its own
 commit, so the rest stays cherry-pickable if the user ever chooses to offer it.
 
-## Build, test, install
+## Build, test, install — validate before PR
+
+Before marking a feature ready, run the full pipeline from the **worktree**:
 
 ```bash
 go build ./... && go vet ./... && gofmt -l . && go test ./...
+make install
 ```
 
-The Makefile builds to `execs/cloudlens`.
+`make install` builds to `execs/cloudlens` and copies the binary to
+`~/.local/bin/cloudlens`, including macOS re-codesign. This lets the user run
+`cloudlens` to validate the feature works before the PR is merged.
 
 ## Architecture
 

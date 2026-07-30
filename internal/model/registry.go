@@ -11,6 +11,10 @@ var Registry = map[string]ResourceMeta{
 		DAO:      &dao.ASG{},
 		Renderer: &render.ASG{},
 	},
+	internal.LowercaseAsgInstance: {
+		DAO:      &dao.ASGInstance{},
+		Renderer: &render.ASGInstance{},
+	},
 	internal.LowercaseEc2: {
 		DAO:      &dao.EC2{},
 		Renderer: &render.EC2{},

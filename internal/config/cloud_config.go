@@ -2,6 +2,7 @@ package config
 
 type CloudConfig struct {
 	SelectedCloud string
+	StartView     string
 	AWSConfig
 	GCPConfig
 }

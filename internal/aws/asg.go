@@ -129,3 +129,77 @@ func safeInt32(i *int32) int32 {
 	}
 	return *i
 }
+
+func GetASGFormatted(cfg aws.Config, asgName string) string {
+	asgClient := autoscaling.NewFromConfig(cfg)
+	result, err := asgClient.DescribeAutoScalingGroups(context.Background(), &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []string{asgName},
+	})
+	if err != nil || len(result.AutoScalingGroups) == 0 {
+		return ""
+	}
+	g := result.AutoScalingGroups[0]
+	return fmt.Sprintf(`Name:                     %s
+ARN:                      %s
+Status:                   %s
+Min Size:                 %d
+Max Size:                 %d
+Desired Capacity:         %d
+Default Cooldown:         %d
+Health Check Type:        %s
+Health Check Grace Period: %d
+Availability Zones:       %s
+Launch Configuration:     %s
+Launch Template:          %s
+Termination Policies:     %s
+Created:                  %v
+Instances:                %d`,
+		safeString(g.AutoScalingGroupName),
+		safeString(g.AutoScalingGroupARN),
+		safeString(g.Status),
+		safeInt32(g.MinSize),
+		safeInt32(g.MaxSize),
+		safeInt32(g.DesiredCapacity),
+		safeInt32(g.DefaultCooldown),
+		safeString(g.HealthCheckType),
+		safeInt32(g.HealthCheckGracePeriod),
+		azList(g.AvailabilityZones),
+		safeString(g.LaunchConfigurationName),
+		launchTemplate(g),
+		tpList(g.TerminationPolicies),
+		fmt.Sprintf("%v", g.CreatedTime),
+		len(g.Instances),
+	)
+}
+
+func GetASGInstances(cfg aws.Config, asgName string) ([]ASGInstanceResp, error) {
+	asgClient := autoscaling.NewFromConfig(cfg)
+	result, err := asgClient.DescribeAutoScalingGroups(context.Background(), &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []string{asgName},
+	})
+	if err != nil {
+		log.Info().Msg(fmt.Sprintf("Error fetching ASG instances for %s: %v", asgName, err))
+		return nil, err
+	}
+	if len(result.AutoScalingGroups) == 0 {
+		return nil, nil
+	}
+
+	instances := result.AutoScalingGroups[0].Instances
+	resp := make([]ASGInstanceResp, 0, len(instances))
+	for _, inst := range instances {
+		protected := "No"
+		if inst.ProtectedFromScaleIn != nil && *inst.ProtectedFromScaleIn {
+			protected = "Yes"
+		}
+		resp = append(resp, ASGInstanceResp{
+			InstanceId:       safeString(inst.InstanceId),
+			InstanceType:     safeString(inst.InstanceType),
+			AvailabilityZone: safeString(inst.AvailabilityZone),
+			LifecycleState:   string(inst.LifecycleState),
+			HealthStatus:     safeString(inst.HealthStatus),
+			Protected:        protected,
+		})
+	}
+	return resp, nil
+}

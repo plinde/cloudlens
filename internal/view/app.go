@@ -41,6 +41,7 @@ type App struct {
 	IsPageContentSorted bool
 	version             string
 	cloudConfig         config.CloudConfig
+	footer              *ui.Footer
 }
 
 func NewApp() *App {
@@ -50,6 +51,7 @@ func NewApp() *App {
 		IsPageContentSorted: false,
 	}
 	a.Views()["statusIndicator"] = ui.NewStatusIndicator(a.App)
+	a.footer = ui.NewFooter()
 	return &a
 }
 
@@ -64,7 +66,7 @@ func (a *App) Init(version string, cloudConfig config.CloudConfig) error {
 		return err
 	}
 	a.Content.Stack.AddListener(a.Menu())
-	a.Content.Stack.AddListener(a.Crumbs())
+	a.Content.Stack.AddListener(a.footer)
 
 	a.App.Init()
 	a.SetInputCapture(a.keyboard)
@@ -249,14 +251,14 @@ func (a *App) layout(ctx context.Context) {
 	aws := tview.NewFlex().SetDirection(tview.FlexRow)
 	aws.AddItem(a.statusIndicator(), 1, 1, false)
 	aws.AddItem(a.Content, 0, 10, true)
-	aws.AddItem(a.Crumbs(), 1, 1, false)
+	aws.AddItem(a.footer, 1, 1, false)
 	aws.AddItem(flash, 1, 1, false)
 	a.Main.AddPage(internal.AWS_SCREEN, aws, true, false)
 
 	gcp := tview.NewFlex().SetDirection(tview.FlexRow)
 	gcp.AddItem(a.statusIndicator(), 1, 1, false)
 	gcp.AddItem(a.Content, 0, 10, true)
-	gcp.AddItem(a.Crumbs(), 1, 1, false)
+	gcp.AddItem(a.footer, 1, 1, false)
 	gcp.AddItem(flash, 1, 1, false)
 	a.Main.AddPage(internal.GCP_SCREEN, gcp, true, false)
 
@@ -500,10 +502,7 @@ func (a *App) PrevCmd(evt *tcell.EventKey) *tcell.EventKey {
 			log.Info().Msg(fmt.Sprintf("inside prv cmd: %v", a.context.Value(internal.FolderName)))
 		}
 	} else {
-
-		if a.cloudConfig.SelectedCloud == "" {
-			a.Main.SwitchToPage(internal.MAIN_SCREEN)
-		}
+		a.BailOut()
 	}
 
 	return nil
@@ -530,6 +529,11 @@ func (a *App) zone() *ui.DropDown {
 
 func (a *App) region() *ui.DropDown {
 	return a.Views()["region"].(*ui.DropDown)
+}
+
+// Footer returns the footer bar.
+func (a *App) Footer() *ui.Footer {
+	return a.footer
 }
 
 func readAndValidateProfile() ([]string, error) {

@@ -13,6 +13,9 @@ func coreViewers(vv MetaViewers) {
 	vv[internal.LowercaseAsg] = MetaViewer{
 		viewerFn: NewASG,
 	}
+	vv[internal.LowercaseAsgInstance] = MetaViewer{
+		viewerFn: NewASGInstance,
+	}
 	vv[internal.LowercaseEc2] = MetaViewer{
 		viewerFn: NewEC2,
 	}

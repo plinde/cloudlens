@@ -172,3 +172,12 @@ type ASGResp struct {
 	LaunchTemplate            string
 	TerminationPolicies       string
 }
+
+type ASGInstanceResp struct {
+	InstanceId       string
+	InstanceType     string
+	AvailabilityZone string
+	LifecycleState   string
+	HealthStatus     string
+	Protected        string
+}

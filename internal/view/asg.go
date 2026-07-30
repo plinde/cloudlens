@@ -1,11 +1,13 @@
 package view
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
 	"github.com/derailed/tview"
 	"github.com/gdamore/tcell/v2"
+	"github.com/one2nc/cloudlens/internal"
 	"github.com/one2nc/cloudlens/internal/dao"
 	"github.com/one2nc/cloudlens/internal/ui"
 	"github.com/one2nc/cloudlens/internal/ui/dialog"
@@ -30,19 +32,34 @@ func (a *ASG) bindKeys(aa ui.KeyActions) {
 		ui.KeyShiftD:    ui.NewKeyAction("Sort Desired", a.GetTable().SortColCmd("Desired", true), true),
 		ui.KeyShiftS:    ui.NewKeyAction("Sort Status", a.GetTable().SortColCmd("Status", true), true),
 		ui.KeyE:         ui.NewKeyAction("Edit", a.editCmd, true),
+		ui.KeyD:         ui.NewKeyAction("Describe", a.describeCmd, true),
 		tcell.KeyEscape: ui.NewKeyAction("Back", a.App().PrevCmd, false),
-		tcell.KeyEnter:  ui.NewKeyAction("View", a.enterCmd, false),
+		tcell.KeyEnter:  ui.NewKeyAction("View", a.instancesCmd, false),
 	})
 }
 
-func (a *ASG) enterCmd(evt *tcell.EventKey) *tcell.EventKey {
+func (a *ASG) instancesCmd(evt *tcell.EventKey) *tcell.EventKey {
+	asgName := a.GetTable().GetSelectedItem()
+	if asgName == "" {
+		return nil
+	}
+	minSize := a.GetTable().GetSelectedCell(1)
+	maxSize := a.GetTable().GetSelectedCell(2)
+	desired := a.GetTable().GetSelectedCell(3)
+
+	inst := NewASGInstance(internal.LowercaseAsgInstance)
+	ctx := context.WithValue(a.App().GetContext(), internal.AsgName, asgName)
+	a.App().SetContext(ctx)
+	a.App().Flash().Info("ASG: " + asgName)
+	a.App().inject(inst)
+	inst.GetTable().SetCustomTitle(fmt.Sprintf("ASG %s (min=%s max=%s desired=%s)", asgName, minSize, maxSize, desired))
+	return nil
+}
+
+func (a *ASG) describeCmd(evt *tcell.EventKey) *tcell.EventKey {
 	asgName := a.GetTable().GetSelectedItem()
 	if asgName != "" {
-		f := describeResource
-		if a.GetTable().enterFn != nil {
-			f = a.GetTable().enterFn
-		}
-		f(a.App(), a.GetTable().GetModel(), a.Resource(), asgName)
+		describeResource(a.App(), a.GetTable().GetModel(), a.Resource(), asgName)
 		a.App().Flash().Info("ASG: " + asgName)
 	}
 	return nil
