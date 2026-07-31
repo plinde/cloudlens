@@ -85,6 +85,9 @@ func (c *Command) defaultCmd() error {
 	cloud := ctx.Value(internal.KeySelectedCloud)
 	switch cloud {
 	case internal.AWS:
+		if c.app.cloudConfig.StartView != "" {
+			return c.run(c.app.cloudConfig.StartView, "", true)
+		}
 		return c.run(internal.LowercaseEc2, "", true)
 	case internal.GCP:
 		return c.run(internal.LowercaseStorage, "", true)

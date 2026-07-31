@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var startView string
+
 func awsCommand() *cobra.Command {
 
 	command := cobra.Command{
@@ -23,6 +25,7 @@ func awsCommand() *cobra.Command {
 
 	command.Flags().BoolVarP(&useLocalStack, "localstack", "l", false, "Use localsatck instead of AWS")
 	command.Flags().StringVarP(&localStackPort, "port", "", "4566", "Read localstack port")
+	command.Flags().StringVarP(&startView, "view", "", "", "Initial resource view (e.g. asg, ec2, s3)")
 
 	return &command
 }
@@ -33,6 +36,7 @@ func selectAWS() {
 	cloudConfig.AWSConfig.Region = region
 	cloudConfig.AWSConfig.UseLocalStack = useLocalStack
 	cloudConfig.AWSConfig.LocalStackPort = localStackPort
+	cloudConfig.StartView = startView
 
 	os.Setenv(internal.LOCALSTACK_PORT, cloudConfig.LocalStackPort)
 	initView()

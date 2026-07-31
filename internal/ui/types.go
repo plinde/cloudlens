@@ -51,6 +51,9 @@ type Tabular interface {
 	// SetRefreshRate sets the model watch loop rate.
 	SetRefreshRate(time.Duration)
 
+	// ResetTimer resets the periodic refresh timer.
+	ResetTimer()
+
 	// AddListener registers a model listener.
 	AddListener(model.TableListener)
 

@@ -131,6 +131,8 @@ func (a *Aliases) loadDefaultAliases(cloud string) {
 
 	switch cloud {
 	case internal.AWS:
+		a.declare(internal.LowercaseAsg, internal.UppercaseAsg)
+		a.declare(internal.LowercaseAsgInstance, internal.UppercaseAsgInstance)
 		a.declare(internal.LowercaseEc2, internal.UppercaseEc2)
 		a.declare(internal.LowercaseS3, internal.UppercaseS3)
 		a.declare(internal.LowercaseSg, internal.UppercaseSg)
@@ -139,7 +141,7 @@ func (a *Aliases) loadDefaultAliases(cloud string) {
 		a.declare(internal.LowercaseIamUser, internal.UppercaseIamUser, internal.LowercaseIam, internal.UppercaseIam)
 		a.declare(internal.LowercaseIamGroup, internal.UppercaseIamGroup)
 		a.declare(internal.LowercaseIamRole, internal.UppercaseIamRole)
-		a.declare(internal.LowercaseEc2Snapshot, internal.UppercaseEc2Snapshot)
+		a.declare(internal.LowercaseEc2Snapshot, internal.LegacyEc2Snapshot, internal.UppercaseEc2Snapshot)
 		a.declare(internal.LowercaseEc2Image, internal.UppercaseEc2Image)
 		a.declare(internal.LowercaseSQS, internal.UppercaseSQS)
 		a.declare(internal.LowercaseVPC, internal.UppercaseVPC)

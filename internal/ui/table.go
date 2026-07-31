@@ -21,6 +21,7 @@ type Table struct {
 	actions KeyActions
 	wide    bool
 	toast   bool
+	title   string
 }
 
 // NewTable returns a new table view.
@@ -177,8 +178,17 @@ func (t *Table) Refresh() {
 
 // UpdateTitle refreshes the table title.
 func (t *Table) UpdateTitle() {
-	title := strings.Join([]string{" ", strings.ToUpper(t.Resource()), " "}, "")
-	t.SetTitle(fmt.Sprintf("[aqua::b]%s", title))
+	title := t.Resource()
+	if t.title != "" {
+		title = t.title
+	}
+	t.SetTitle(fmt.Sprintf("[aqua::b] %s ", strings.ToUpper(title)))
+}
+
+// SetCustomTitle sets a persistent custom title.
+func (t *Table) SetCustomTitle(title string) {
+	t.title = title
+	t.UpdateTitle()
 }
 
 // SortColCmd designates a sorted column.

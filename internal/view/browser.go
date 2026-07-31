@@ -2,18 +2,22 @@ package view
 
 import (
 	"context"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/one2nc/cloudlens/internal/render"
 	"github.com/one2nc/cloudlens/internal/ui"
 )
 
 // Browser represents a generic resource browser.
 type Browser struct {
 	*Table
-	contextFn ContextFunc
-	cancelFn  context.CancelFunc
-	mx        sync.RWMutex ``
+	contextFn  ContextFunc
+	cancelFn   context.CancelFunc
+	refreshCtx context.Context
+	mx         sync.RWMutex ``
 }
 
 // NewBrowser returns a new browser.
@@ -46,7 +50,8 @@ func (b *Browser) Init(ctx context.Context) error {
 
 func (b *Browser) bindKeys(aa ui.KeyActions) {
 	aa.Add(ui.KeyActions{
-		ui.KeyR:       ui.NewSharedKeyAction("Filter Reset", b.resetCmd, false),
+		ui.KeyR:       ui.NewSharedKeyAction("Refresh", b.resetCmd, false),
+		ui.KeyQ:       ui.NewSharedKeyAction("Quit", b.backOrQuitCmd, false),
 		tcell.KeyHelp: ui.NewSharedKeyAction("Help", b.helpCmd, false),
 	})
 }
@@ -54,14 +59,14 @@ func (b *Browser) bindKeys(aa ui.KeyActions) {
 // Start initializes browser updates.
 func (b *Browser) Start() {
 	b.Stop()
-	//b.GetModel().AddListener(b)
+	b.GetModel().AddListener(b)
 	b.Table.Start()
-	//b.CmdBuff().AddListener(b)
-	b.Table.GetModel().Refresh(b.prepareContext())
+	b.refreshCtx = b.prepareContext()
+	b.Table.GetModel().Refresh(b.refreshCtx)
 	b.Refresh()
-	// if err := b.GetModel().Watch(b.context); err != nil {
-	// 	b.App().Flash().Err(fmt.Errorf("Watcher failed for %s -- %w", b.Resource(), err))
-	// }
+	if err := b.GetModel().Watch(b.refreshCtx); err != nil {
+		b.App().Flash().Err(fmt.Errorf("Watcher failed for %s -- %w", b.Resource(), err))
+	}
 }
 
 // Stop terminates browser updates.
@@ -74,7 +79,7 @@ func (b *Browser) Stop() {
 		}
 	}
 	b.mx.Unlock()
-	//b.GetModel().RemoveListener(b)
+	b.GetModel().RemoveListener(b)
 	b.Table.Stop()
 }
 
@@ -102,6 +107,26 @@ func (b *Browser) helpCmd(evt *tcell.EventKey) *tcell.EventKey {
 }
 
 func (b *Browser) resetCmd(evt *tcell.EventKey) *tcell.EventKey {
-	b.Refresh()
+	if b.refreshCtx != nil {
+		b.GetModel().Refresh(b.refreshCtx)
+		b.GetModel().ResetTimer()
+	}
 	return evt
+}
+
+func (b *Browser) backOrQuitCmd(evt *tcell.EventKey) *tcell.EventKey {
+	if b.App().Content.IsLast() {
+		b.App().BailOut()
+	} else {
+		b.App().PrevCmd(evt)
+	}
+	return nil
+}
+
+// TableDataChanged notifies the model data changed.
+func (b *Browser) TableDataChanged(data *render.TableData) {
+	b.App().Footer().SetLastSync(time.Now())
+	b.App().QueueUpdateDraw(func() {
+		b.Table.Update(data)
+	})
 }

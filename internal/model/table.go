@@ -28,6 +28,7 @@ type Table struct {
 	listeners   []TableListener
 	mx          sync.RWMutex
 	refreshRate time.Duration
+	resetCh     chan struct{}
 }
 
 // NewTable returns a new table model.
@@ -36,6 +37,7 @@ func NewTable(res string) *Table {
 		resource:    res,
 		data:        render.NewTableData(),
 		refreshRate: 2 * time.Second,
+		resetCh:     make(chan struct{}, 1),
 	}
 }
 
@@ -84,12 +86,20 @@ func (t *Table) SetRefreshRate(d time.Duration) {
 	t.refreshRate = d
 }
 
+// ResetTimer resets the periodic refresh timer to fire immediately.
+func (t *Table) ResetTimer() {
+	select {
+	case t.resetCh <- struct{}{}:
+	default:
+	}
+}
+
 // Watch initiates model updates.
 func (t *Table) Watch(ctx context.Context) error {
 	if err := t.refresh(ctx); err != nil {
 		return err
 	}
-	//go t.updater(ctx)
+	go t.updater(ctx)
 
 	return nil
 }
@@ -119,6 +129,9 @@ func (t *Table) updater(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
+		case <-t.resetCh:
+			rate = initRefreshRate
+			continue
 		case <-time.After(rate):
 			rate = t.refreshRate
 			err := backoff.Retry(func() error {
