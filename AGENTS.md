@@ -64,6 +64,13 @@ make install
 `~/.local/bin/cloudlens`, including macOS re-codesign. This lets the user run
 `cloudlens` to validate the feature works before the PR is merged.
 
+## Functionality Review Handoff
+
+When asking the user to review functionality, always run `make install` from the
+linked worktree immediately before the handoff. Report the installed binary's
+version/commit and the worktree used. Never ask the user to review against an
+uninstalled or stale `~/.local/bin/cloudlens` binary.
+
 ## Architecture
 
 cloudlens follows a layered architecture for each AWS service view:

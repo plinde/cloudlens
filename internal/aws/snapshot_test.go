@@ -2,14 +2,36 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
+
+func TestGetSnapshotsReturnsRequestErrors(t *testing.T) {
+	cfg := aws.Config{
+		Region:      "us-east-1",
+		Credentials: credentials.NewStaticCredentialsProvider("test", "test", ""),
+		HTTPClient: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("transport failure")
+		}),
+	}
+
+	_, err := GetSnapshots(cfg)
+	if err == nil {
+		t.Fatal("expected snapshot request error")
+	}
+	if !strings.Contains(err.Error(), "transport failure") {
+		t.Fatalf("expected transport failure, got %v", err)
+	}
+}
 
 type SnapshotAPI interface {
 	GetSnapshots(ctx context.Context, params *ec2.DescribeSnapshotsInput) (*ec2.DescribeSnapshotsOutput, error)

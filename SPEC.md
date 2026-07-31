@@ -35,6 +35,8 @@ read-only.
 - **Makefile**: `help` (default), `build`, `install`, `clean`, `test`, `test-v`, `cover`, `run`
 - **Shell aliases**: `cl` → `cloudlens`, `cl-kalibrate-staging` → wrapper, `cl-kalibrate-prod`, etc. via `~/.zsh/claude-managed.zshrc`
 - **Zsh completions**: `~/.zsh/completion/_cloudlens` (cobra-generated) + `_cl` wrapper completion
+- **AWS SDK compatibility**: EC2 SDK aligned with the core SDK; middleware-stack regressions covered by a transport-level test
+- **EC2 snapshot command**: canonical `ec2:s`; legacy `ec2:S` remains accepted
 
 ## Architecture
 
@@ -68,6 +70,13 @@ Follows the existing cloudlens layered pattern:
 - Test suite partially broken (4 packages fail to build, 3 assertion mismatches from upstream "Name column" commit)
 - ASG edit form appears as modal dialog; no undo on failure (but API validates first)
 - ASG instance drill-down fetches full ASG for instances only — could skip the extra call by caching
+
+## Resource Command Convention
+
+- `ec2` lists EC2 instances.
+- `ec2:s` lists EC2 snapshots (`ec2:S` remains a compatibility alias).
+- `asg` lists Auto Scaling groups.
+- Selecting an ASG and pressing Enter opens its instance-membership view. `asg:i` is the internal resource identifier for that nested view, not a replacement for `asg`.
 
 ## Upcoming
 

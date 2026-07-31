@@ -24,7 +24,10 @@ func (es *EC2S) List(ctx context.Context) ([]Object, error) {
 	if !ok {
 		log.Err(fmt.Errorf("conversion err: Expected awsV2.Config but got %v", cfg))
 	}
-	ins := aws.GetSnapshots(cfg)
+	ins, err := aws.GetSnapshots(cfg)
+	if err != nil {
+		return nil, err
+	}
 	objs := make([]Object, len(ins))
 	for i, obj := range ins {
 		objs[i] = obj

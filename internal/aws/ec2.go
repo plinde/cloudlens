@@ -150,12 +150,12 @@ func GetSingleVolume(cfg aws.Config, vId string) string {
 Snapshots are region specific
 Localstack does have default snapshots, so we can see some of the snapshots that we never created
 */
-func GetSnapshots(cfg aws.Config) []Snapshot {
+func GetSnapshots(cfg aws.Config) ([]Snapshot, error) {
 	ec2Client := ec2.NewFromConfig(cfg)
 	result, err := ec2Client.DescribeSnapshots(context.Background(), &ec2.DescribeSnapshotsInput{})
 	if err != nil {
 		log.Info().Msg(fmt.Sprintf("Error in fetching Snapshots, err: %v", err))
-		return nil
+		return nil, err
 	}
 	var snapshots []Snapshot
 	for _, s := range result.Snapshots {
@@ -163,7 +163,7 @@ func GetSnapshots(cfg aws.Config) []Snapshot {
 		localZone, err := config.GetLocalTimeZone() // Empty string loads the local timezone
 		if err != nil {
 			fmt.Println("Error loading local timezone:", err)
-			return nil
+			return nil, err
 		}
 		loc, _ := time.LoadLocation(localZone)
 		IST := launchTime.In(loc)
@@ -178,7 +178,7 @@ func GetSnapshots(cfg aws.Config) []Snapshot {
 		}
 		snapshots = append(snapshots, snapshot)
 	}
-	return snapshots
+	return snapshots, nil
 }
 
 func GetSingleSnapshot(cfg aws.Config, sId string) string {
